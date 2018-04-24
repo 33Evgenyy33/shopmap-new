@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Магазины М.Видео на карте - API Яндекс.Карт версии 2.х (ссылки на города) Новая версия</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<script src="http://yandex.st/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>
+<script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=ru-RU" type="text/javascript"></script>
+<style>
+#shopconteyner{
+width: 100%;
+}
+
+#shops{ float:left;
+width: 30%;
+}
+
+#YMapsID{
+margin-left: 40%;
+width: 60%;
+height: 600px;
+}
+</style>    
+	
+<script type="text/javascript">	
+	var map;
+	
+	var myCollection;
+	
+	ymaps.ready(function () {
+    map = new ymaps.Map('YMapsID', {
+        center: [56.326944, 44.0075],
+        zoom: 15,
+        type: 'yandex#map',
+        behaviors: ['default', 'scrollZoom']
+    });
+	
+	//Добавляем элементы управления
+	 map.controls                
+            .add('zoomControl')                
+            .add('typeSelector')                
+            .add('mapTools');
+			
+	myCollection = new ymaps.GeoObjectCollection();				
+
+	do_search('Екатеринбург');	
+	})
+	
+function do_search(town){
+
+$('#shops').html('');
+ 
+$.getJSON("searcheshop.php", {town: town}, function(json){ 
+var src_res="<p><strong>результаты поиска: </strong></p>";
+
+myCollection.removeAll();
+
+src_res=src_res+'<p><strong>Найдено объектов: '+json.length+'</strong></p>';
+
+for (i = 0; i < json.length; i++) {
+var sch = i+1;
+var placemark = new ymaps.Placemark([json[i].lon,json[i].lat], {
+	iconContent: sch,
+    balloonContentHeader: '<div style="color:#ff0303;font-weight:bold">'+json[i].address+'</div>',
+    balloonContentBody: '<div style="font-size:13px;"><div><strong>Адрес:</strong> '+json[i].address+'<br>'+'<strong>Режим работы:</strong> '+json[i].rrab+'<br></div></div>'   
+        }, {
+        // Опции
+        preset: 'twirl#nightStretchyIcon' // иконка растягивается под контент
+        });
+
+myCollection.add(placemark);		
+src_res=src_res+'<p>'+sch+'. '+'<a href="#" onClick="return go_to('+json[i].lat+', '+json[i].lon+",'"+json[i].address+"');"+'\">'+json[i].address+'</a></p>';
+}
+map.geoObjects.add(myCollection);
+// Set center and zoom using collection bounds.
+map.setBounds(myCollection.getBounds());
+
+$('#shops').html(src_res);
+
+});
+}
+
+function go_to(lat,lon,address){
+map.setCenter([lon, lat], 16);
+
+myCollection.each(function (item) {
+    if (item.properties.get('balloonContentHeader') == '<div style="color:#ff0303;font-weight:bold">'+address+'</div>') {
+        item.balloon.open();
+     }
+	});
+return false;
+}		
+
+
+</script>
+
+</head>
+<body>
+<div id="searchform">
+<a href="#" onclick="do_search('Екатеринбург')">Екатеринбург</a><br>
+<a href="#" onclick="do_search('Казань')">Казань</a><br>
+<a href="#" onclick="do_search('Нижний Новгород')">Нижний Новгород</a><br>
+<a href="#" onclick="do_search('Пермь')">Пермь</a><br>
+<a href="#" onclick="do_search('Самара')">Самара</a><br>
+<a href="#" onclick="do_search('Санкт-Петербург')">Санкт-Петербург</a>
+</div>
+
+<div id="shopconteyner">
+<div id="shops"></div>
+<div id="YMapsID"></div>
+</div>
+</body>
+</html>
