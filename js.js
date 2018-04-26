@@ -1,24 +1,28 @@
 jQuery(document).ready(function($) {
-    var map;
 
-    var myCollection;
-
-    var objectManager;
+    let map;
+    let objectManager;
 
     ymaps.ready(function () {
         map = new ymaps.Map('YMapsID', {
             center: [56.326944, 44.0075],
             zoom: 10,
             type: 'yandex#map',
-            behaviors: ['default', 'scrollZoom'],
+            controls: []
         });
+
+        map.controls.add('zoomControl', {
+            size: "large"
+        });
+        map.behaviors.disable('scrollZoom');
 
         objectManager = new ymaps.ObjectManager({
             // Чтобы метки начали кластеризоваться, выставляем опцию.
-            // clusterize: true,
+            clusterize: true,
             // ObjectManager принимает те же опции, что и кластеризатор.
             gridSize: 32,
-            // clusterDisableClickZoom: true
+            clusterDisableClickZoom: false,
+            clusterOpenBalloonOnClick: false,
         });
 
         // Чтобы задать опции одиночным объектам и кластерам,
@@ -32,9 +36,12 @@ jQuery(document).ready(function($) {
             console.log(town);
             do_search(town);
         });
+
+        $("div#shops").on("click","a", function(){
+            myFunction($(this).data('object-id'))
+        });
+
     });
-
-
 
     function do_search(town) {
 
@@ -57,7 +64,7 @@ jQuery(document).ready(function($) {
 
                 src_res = src_res + '<p><strong>Найдено объектов: ' + json.length + '</strong></p>';
 
-                for (i = 0; i < json.address.length; i++) {
+                for (i = 0; i < json[1].address.length; i++) {
                     var sch = i + 1;
                     // var placemark = new ymaps.Placemark([json[i].lon, json[i].lat], {
                     //     iconContent: sch,
@@ -69,12 +76,12 @@ jQuery(document).ready(function($) {
                     // });
                     // myCollection.add(placemark);
                     // src_res = src_res + '<p>' + sch + '. ' + '<a href="#" onclick="myFunction(' + json[i].lat + ', ' + json[i].lon + ",'" + json[i].address + "')" + '\">' + json[i].address + '</a></p>';
-                    src_res = src_res + '<p>' + sch + '. ' + '<a href="#" data-lat="'+json.address[i].lat+'" data-lon="'+json.address[i].lon+'" data-address="'+json.address[i].address+'" data-object-id="'+json.address[i].id+'">' + json.address[i].address + '</a></p>';
+                    src_res = src_res + '<p>' + sch + '. ' + '<a href="#" data-object-id="'+json[1].address[i].id+'" data-address="'+json[1].address[i].address+'">' + json[1].address[i].address + '</a></p>';
 
 
                 }
 
-                objectManager.add(json);
+                objectManager.add(json[0]);
                 map.setBounds(objectManager.getBounds());
 
                 $('#shops').html(src_res);
@@ -82,16 +89,10 @@ jQuery(document).ready(function($) {
         });
     }
 
-    $("div#shops").on("click","a", function(){
-        myFunction($(this).data('object-id'),$(this).data('lat'), $(this).data('lon'), $(this).data('address'))
-    });
-
-    function myFunction(id, lat, lon, address) {
-        map.setCenter([lon, lat], 16);
-        // console.log(objectManager.objects.get('13'));
+    function myFunction(id) {
+        map.setCenter(objectManager.objects.getById(id).geometry.coordinates, 16);
         objectManager.objects.balloon.open(id);
-
-        return false;
     }
+
 
 });
