@@ -64,7 +64,7 @@ jQuery(document).ready(function($) {
 
                 src_res = src_res + '<p><strong>Найдено объектов: ' + json.length + '</strong></p>';
 
-                for (i = 0; i < json[1].address.length; i++) {
+                for (let i = 0; i < json[1].address.length; i++) {
                     var sch = i + 1;
                     // var placemark = new ymaps.Placemark([json[i].lon, json[i].lat], {
                     //     iconContent: sch,
